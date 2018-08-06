@@ -1,0 +1,47 @@
+version: '3.1'
+
+services:
+
+  db:
+    image: mysql/mysql-server
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: radius-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: radius
+      MYSQL_USER: radius
+      MYSQL_PASSWORD: badam
+      MYSQL_LOG_CONSOLE: "true"
+    volumes:
+      - "db-data:/var/lib/mysql/"
+      - ./radius_sql:/docker-entrypoint-initdb.d
+    networks:
+      backend-tier:
+      nodejs-tier:
+
+  radius-sql:
+    build: ./image
+    restart: always
+    container_name: freeradius-sql
+
+    networks:
+      backend-tier: 
+
+  api: 
+    image: banjodocker/freeradius-restapi
+    restart: always
+    container_name: api
+
+volumes:
+  db-data:
+
+networks:
+  backend-tier:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+  nodejs-tier:
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
